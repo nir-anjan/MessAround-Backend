@@ -1,4 +1,5 @@
 const { AppError } = require("../utils/errors");
+const logger = require("../utils/logger");
 
 /**
  * Global error handler middleware
@@ -48,9 +49,25 @@ const errorHandler = (err, req, res, next) => {
     message = "Token expired";
   }
 
-  // Log error in development
-  if (process.env.NODE_ENV === "development") {
-    console.error("Error:", err);
+  // Log error with context
+  const errorLog = {
+    method: req.method,
+    url: req.originalUrl,
+    statusCode,
+    message,
+    userId: req.user?.id || "anonymous",
+    ip: req.ip,
+    userAgent: req.get("user-agent"),
+  };
+
+  // Log based on severity
+  if (statusCode >= 500) {
+    logger.error(`Server Error: ${message}`, {
+      ...errorLog,
+      stack: err.stack,
+    });
+  } else if (statusCode >= 400) {
+    logger.warn(`Client Error: ${message}`, errorLog);
   }
 
   // Send error response
