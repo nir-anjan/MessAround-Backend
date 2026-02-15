@@ -1,0 +1,29 @@
+{
+  "name": "messaround-backend",
+  "version": "1.0.0",
+  "description": "Simple Express backend with Node.js",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "express",
+    "nodejs",
+    "backend",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pg": "^8.18.0",
+    "prisma": "5.22.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

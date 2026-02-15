@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========================================
+// ENUMS
+// ========================================
+
+enum Role {
+  user
+  mess_owner
+  admin
+}
+
+enum SubscriptionStatus {
+  active
+  paused
+  cancelled
+}
+
+enum DurationType {
+  weekly
+  monthly
+}
+
+enum MealType {
+  veg
+  nonveg
+}
+
+// ========================================
+// MODELS
+// ========================================
+
+// 👤 User Model
+// Represents: Working professionals, Mess owners, Admins
+model User {
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+  password String
+  role     Role
+  phone    String?
+
+  // Relations
+  messes        Mess[]
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+// 🏪 Mess Model
+// Represents: A business owned by a mess_owner
+model Mess {
+  id              String  @id @default(uuid())
+  ownerId         String
+  name            String
+  description     String?
+  location        String
+  vegAvailable    Boolean @default(false)
+  nonvegAvailable Boolean @default(false)
+  isActive        Boolean @default(true)
+
+  // Relations
+  owner User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  plans Plan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@map("messes")
+}
+
+// 📦 Plan Model
+// Represents: Subscription product offered by a mess
+model Plan {
+  id           String       @id @default(uuid())
+  messId       String
+  name         String
+  price        Float
+  durationType DurationType
+  mealType     MealType
+  mealsPerDay  Int
+  isActive     Boolean      @default(true)
+
+  // Relations
+  mess          Mess           @relation(fields: [messId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([messId])
+  @@map("plans")
+}
+
+// 📑 Subscription Model
+// Represents: A contract between user and plan
+// Includes snapshot fields to protect billing history
+model Subscription {
+  id     String @id @default(uuid())
+  userId String
+  planId String
+
+  startDate DateTime
+  endDate   DateTime
+  status    SubscriptionStatus @default(active)
+
+  // Snapshot fields for billing protection
+  priceAtPurchase  Float
+  planNameSnapshot String
+  mealTypeSnapshot MealType
+
+  // Relations
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan       Plan         @relation(fields: [planId], references: [id], onDelete: Restrict)
+  attendance Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([planId])
+  @@map("subscriptions")
+}
+
+// 🍽 Attendance Model
+// Represents: Daily meal participation
+// One record per day per subscription
+model Attendance {
+  id             String   @id @default(uuid())
+  subscriptionId String
+  date           DateTime
+
+  breakfast Boolean @default(false)
+  lunch     Boolean @default(false)
+  dinner    Boolean @default(false)
+
+  // Relations
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([subscriptionId, date])
+  @@index([subscriptionId])
+  @@map("attendance")
+}
