@@ -13,28 +13,36 @@ const logFormat = winston.format.combine(
     // Add metadata in a readable format
     if (Object.keys(meta).length > 0) {
       const metaEntries = [];
-      
+
       // Format common fields nicely
       if (meta.method) metaEntries.push(`method=${meta.method}`);
       if (meta.statusCode) metaEntries.push(`status=${meta.statusCode}`);
       if (meta.duration) metaEntries.push(`time=${meta.duration}`);
-      if (meta.userId && meta.userId !== 'anonymous') {
+      if (meta.userId && meta.userId !== "anonymous") {
         // Show shortened UUID
         const shortId = meta.userId.substring(0, 8);
         metaEntries.push(`user=${shortId}...`);
       }
       if (meta.ip) metaEntries.push(`ip=${meta.ip}`);
-      
+
       // Add any remaining metadata
-      const displayedKeys = ['method', 'statusCode', 'duration', 'userId', 'ip', 'url', 'userAgent'];
-      Object.keys(meta).forEach(key => {
+      const displayedKeys = [
+        "method",
+        "statusCode",
+        "duration",
+        "userId",
+        "ip",
+        "url",
+        "userAgent",
+      ];
+      Object.keys(meta).forEach((key) => {
         if (!displayedKeys.includes(key)) {
           metaEntries.push(`${key}=${JSON.stringify(meta[key])}`);
         }
       });
 
       if (metaEntries.length > 0) {
-        log += ` [${metaEntries.join(', ')}]`;
+        log += ` [${metaEntries.join(", ")}]`;
       }
     }
 

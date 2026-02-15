@@ -33,27 +33,26 @@ app.use((req, res, next) => {
   // Log response when finished
   res.on("finish", () => {
     const duration = Date.now() - startTime;
-    const logLevel = res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "info";
+    const logLevel =
+      res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "info";
 
     // Format URL (shorten long UUIDs)
     let url = req.originalUrl;
     if (url.length > 60) {
       url = url.replace(
         /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
-        (match) => match.substring(0, 8) + '...'
+        (match) => match.substring(0, 8) + "...",
       );
     }
 
-    const statusIcon = res.statusCode >= 500 ? '✗' : res.statusCode >= 400 ? '⚠' : '✓';
-    logger[logLevel](
-      `${statusIcon} ${req.method.padEnd(6)} ${url}`,
-      {
-        method: req.method,
-        statusCode: res.statusCode,
-        duration: `${duration}ms`,
-        userId: req.user?.id,
-      },
-    );
+    const statusIcon =
+      res.statusCode >= 500 ? "✗" : res.statusCode >= 400 ? "⚠" : "✓";
+    logger[logLevel](`${statusIcon} ${req.method.padEnd(6)} ${url}`, {
+      method: req.method,
+      statusCode: res.statusCode,
+      duration: `${duration}ms`,
+      userId: req.user?.id,
+    });
   });
 
   next();
