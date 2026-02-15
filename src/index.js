@@ -2,7 +2,15 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const db = require("./db/connection");
-const apiRoutes = require("./routes/api");
+const errorHandler = require("./middleware/errorHandler");
+
+// Import route modules
+const authRoutes = require("./routes/auth.routes");
+const messRoutes = require("./routes/mess.routes");
+const planRoutes = require("./routes/plan.routes");
+const subscriptionRoutes = require("./routes/subscription.routes");
+const attendanceRoutes = require("./routes/attendance.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,18 +43,20 @@ app.get("/health/db", async (req, res) => {
 });
 
 // API routes
-app.use("/api", apiRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/messes", messRoutes);
+app.use("/api/messes/:messId/plans", planRoutes);
+app.use("/api/messes/:messId/today-summary", dashboardRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/subscriptions/:id/attendance", attendanceRoutes);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ error: "Route not found" });
+  res.status(404).json({ success: false, error: "Route not found" });
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
-});
+// Global error handler (must be last)
+app.use(errorHandler);
 
 // Start server and test database connection
 const startServer = async () => {
