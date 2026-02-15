@@ -18,45 +18,40 @@ const dashboardRoutes = require("./routes/dashboard.routes");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Morgan HTTP request logger
-const morganFormat =
-  process.env.NODE_ENV === "production"
-    ? "combined"
-    : ":method :url :status :res[content-length] - :response-time ms";
-
-app.use(morgan(morganFormat, { stream: logger.stream }));
+// Note: Using custom request logging middleware below instead of Morgan
+// to avoid duplicate logs and have better control over format
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware
+// Request/Response logging middleware
 app.use((req, res, next) => {
   const startTime = Date.now();
 
-  // Log request
-  logger.info(`→ ${req.method} ${req.originalUrl}`, {
-    method: req.method,
-    url: req.originalUrl,
-    ip: req.ip,
-    userAgent: req.get("user-agent"),
-    userId: req.user?.id || "anonymous",
-  });
-
-  // Log response
+  // Log response when finished
   res.on("finish", () => {
     const duration = Date.now() - startTime;
-    const logLevel = res.statusCode >= 400 ? "warn" : "info";
+    const logLevel = res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "info";
 
+    // Format URL (shorten long UUIDs)
+    let url = req.originalUrl;
+    if (url.length > 60) {
+      url = url.replace(
+        /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+        (match) => match.substring(0, 8) + '...'
+      );
+    }
+
+    const statusIcon = res.statusCode >= 500 ? '✗' : res.statusCode >= 400 ? '⚠' : '✓';
     logger[logLevel](
-      `← ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`,
+      `${statusIcon} ${req.method.padEnd(6)} ${url}`,
       {
         method: req.method,
-        url: req.originalUrl,
         statusCode: res.statusCode,
         duration: `${duration}ms`,
-        userId: req.user?.id || "anonymous",
+        userId: req.user?.id,
       },
     );
   });

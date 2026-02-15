@@ -3,10 +3,7 @@ const { PrismaClient } = require("@prisma/client");
 // Create a single instance of Prisma Client
 // This should be reused throughout the application
 const prisma = new PrismaClient({
-  log:
-    process.env.NODE_ENV === "development"
-      ? ["query", "error", "warn"]
-      : ["error"],
+  log: ["error"], // Only log errors, hide queries for cleaner logs
 });
 
 // Handle graceful shutdown
