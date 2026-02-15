@@ -19,9 +19,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Morgan HTTP request logger
-const morganFormat = process.env.NODE_ENV === "production"
-  ? "combined"
-  : ":method :url :status :res[content-length] - :response-time ms";
+const morganFormat =
+  process.env.NODE_ENV === "production"
+    ? "combined"
+    : ":method :url :status :res[content-length] - :response-time ms";
 
 app.use(morgan(morganFormat, { stream: logger.stream }));
 
@@ -33,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 // Request logging middleware
 app.use((req, res, next) => {
   const startTime = Date.now();
-  
+
   // Log request
   logger.info(`→ ${req.method} ${req.originalUrl}`, {
     method: req.method,
@@ -42,21 +43,24 @@ app.use((req, res, next) => {
     userAgent: req.get("user-agent"),
     userId: req.user?.id || "anonymous",
   });
-  
+
   // Log response
   res.on("finish", () => {
     const duration = Date.now() - startTime;
     const logLevel = res.statusCode >= 400 ? "warn" : "info";
-    
-    logger[logLevel](`← ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`, {
-      method: req.method,
-      url: req.originalUrl,
-      statusCode: res.statusCode,
-      duration: `${duration}ms`,
-      userId: req.user?.id || "anonymous",
-    });
+
+    logger[logLevel](
+      `← ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`,
+      {
+        method: req.method,
+        url: req.originalUrl,
+        statusCode: res.statusCode,
+        duration: `${duration}ms`,
+        userId: req.user?.id || "anonymous",
+      },
+    );
   });
-  
+
   next();
 });
 
@@ -108,7 +112,7 @@ const startServer = async () => {
 
     if (!isConnected) {
       logger.warn(
-        "⚠️  Failed to connect to database. Server will start but database operations will fail."
+        "⚠️  Failed to connect to database. Server will start but database operations will fail.",
       );
     } else {
       logger.info("✅ Database connected successfully");
@@ -121,7 +125,7 @@ const startServer = async () => {
       logger.info(`🔗 DB health check: http://localhost:${PORT}/health/db`);
       logger.info(`📁 Logs directory: logs/`);
       logger.info("");
-      
+
       // Display all available routes
       displayRoutes(app, logger);
     });
