@@ -11,7 +11,10 @@ const pool = new Pool({
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
   connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection cannot be established
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+  // Enable SSL if connecting to Render (or any remote host that requires it)
+  ssl: process.env.DB_HOST?.includes("render.com")
+    ? { rejectUnauthorized: false }
+    : undefined,
 });
 
 // Test the database connection
