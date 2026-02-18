@@ -73,10 +73,11 @@ app.get("/health/db", async (req, res) => {
       timestamp: result.rows[0].now,
     });
   } catch (error) {
-    logger.error("Database health check failed", { error: error.message });
+    console.error("FULL DB ERROR:", error);
+    logger.error("Database health check failed", { error });
     res.status(500).json({
       status: "error",
-      message: error.message,
+      message: error?.message || error?.toString() || "Unknown error",
     });
   }
 });
